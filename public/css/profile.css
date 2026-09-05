@@ -1,0 +1,695 @@
+/* ================================
+   PROFILE PAGE
+================================ */
+.page--profile {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ================================
+   HERO
+================================ */
+.profile-hero {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  height: 100svh;
+  background: var(--color-bg);
+}
+
+.profile-hero__media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.profile-hero__media-inner {
+  position: absolute;
+  inset: -4%;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.profile-hero__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.profile-hero__shade {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.16);
+  pointer-events: none;
+}
+
+.profile-hero__content {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 6rem var(--page-padding) 2.5rem;
+  color: var(--color-text);
+  mix-blend-mode: difference;
+}
+
+.profile-hero__title {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  font-size: 8rem;
+  font-weight: 500;
+  line-height: 0.75;
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+}
+
+.profile-hero__line {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+  transform-origin: 0 100%;
+  will-change: transform;
+}
+
+.profile-hero__line--right {
+  margin-left: auto;
+}
+
+.profile-hero__bottom {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+/* ================================
+   INTRO
+================================ */
+.profile-intro {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(9rem, 14vw, 14rem) var(--page-padding);
+  background: var(--color-bg);
+}
+
+.profile-intro__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  margin-bottom: clamp(10rem, 15vw, 15rem);
+}
+
+.profile-intro__label,
+.profile-intro__content {
+  min-width: 0;
+}
+
+.profile-intro__label {
+  padding-top: 0.35rem;
+}
+
+.profile-intro__content {
+  width: 100%;
+}
+
+.profile-intro__copy {
+  max-width: 42rem;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  will-change: transform, opacity;
+}
+
+/* ================================
+   DETAILS
+================================ */
+.profile-details {
+  width: 100%;
+  max-width: 100%;
+  margin-top: clamp(4rem, 6vw, 6rem);
+}
+
+.profile-details__rows {
+  width: 100%;
+  border-top: 1px solid var(--color-line);
+}
+
+.profile-details__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 4.75rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.profile-details__label,
+.profile-details__value {
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.profile-details__label {
+  color: var(--color-muted);
+}
+
+.profile-details__value {
+  text-align: right;
+}
+
+/* ================================
+   DISCIPLINES
+================================ */
+.profile-disciplines {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.profile-disciplines__line {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  font-size: 8rem;
+  font-weight: 500;
+  line-height: 0.79;
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.profile-disciplines__line + .profile-disciplines__line {
+  margin-top: 0.12em;
+}
+
+.profile-disciplines__line--right {
+  margin-left: auto;
+}
+
+/* ================================
+   SHARED MEDIA
+================================ */
+.profile-media {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg);
+  transform: translateZ(0);
+}
+
+.profile-media__inner {
+  position: absolute;
+  top: -6%;
+  left: 0;
+  width: 100%;
+  height: 112%;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.profile-media img,
+.profile-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ================================
+   FILM
+================================ */
+.profile-film {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  justify-content: center;
+  padding: 0 var(--page-padding) clamp(12rem, 18vw, 18rem);
+  background: var(--color-bg);
+}
+
+.profile-film__media {
+  width: min(34vw, 32rem);
+  max-width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+.profile-film__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================================
+   EDITORIAL STORY
+================================ */
+.profile-story {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(5rem, 8vw, 8rem) var(--page-padding) clamp(15rem, 22vw, 22rem);
+  background: var(--color-bg);
+}
+
+/* ================================
+   VERTICAL TYPE
+================================ */
+.profile-story__rail {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+}
+
+.profile-story__rail-inner {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  height: 100svh;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--page-padding);
+}
+
+.profile-story__rail-column {
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+  font-size: 5.5rem;
+  font-weight: 500;
+  line-height: 0.84;
+  letter-spacing: -0.065em;
+  text-transform: uppercase;
+  will-change: transform, opacity;
+}
+
+.profile-story__rail-column--left {
+  align-items: flex-start;
+}
+
+.profile-story__rail-column--right {
+  align-items: flex-end;
+}
+
+.profile-story__rail-letter {
+  display: block;
+  line-height: inherit;
+}
+
+/* ================================
+   STORY ITEMS
+================================ */
+.profile-story__item {
+  position: relative;
+  z-index: 2;
+  width: min(30vw, 29rem);
+  max-width: 100%;
+  will-change: transform, opacity;
+}
+
+.profile-story__media {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+
+/* ================================
+   STORY POSITIONS
+================================ */
+.profile-story__item--one {
+  margin-left: 12%;
+  margin-bottom: clamp(11rem, 18vw, 18rem);
+}
+
+.profile-story__item--two {
+  margin-right: 14%;
+  margin-bottom: clamp(12rem, 19vw, 19rem);
+  margin-left: auto;
+}
+
+.profile-story__item--three {
+  margin-bottom: clamp(12rem, 19vw, 19rem);
+  margin-left: 18%;
+}
+
+.profile-story__item--four {
+  margin-right: 8%;
+  margin-left: auto;
+}
+
+/* ================================
+   BOOKING
+================================ */
+.profile-booking {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem var(--page-padding);
+  background: var(--color-bg);
+}
+
+.profile-booking__top {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4rem;
+}
+
+.profile-booking__socials {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 2rem;
+}
+
+.profile-booking__social {
+  color: var(--color-muted);
+  transition: color 0.35s ease;
+}
+
+.profile-booking__social:hover {
+  color: var(--color-text);
+}
+
+.profile-booking__link {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  perspective: 1600px;
+}
+
+.profile-booking__object {
+  display: flex;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.profile-booking__word {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  color: var(--color-text);
+  font-size: 9rem;
+  font-weight: 500;
+  line-height: 0.72;
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.profile-booking__word + .profile-booking__word {
+  margin-top: 0.08em;
+}
+
+/* ================================
+   LARGE DESKTOP
+================================ */
+@media (max-width: 1280px) {
+  .profile-hero__title,
+  .profile-disciplines__line {
+    font-size: 7rem;
+  }
+
+  .profile-story__rail-column {
+    font-size: 4.8rem;
+  }
+
+  .profile-story__item {
+    width: min(32vw, 27rem);
+  }
+
+  .profile-film__media {
+    width: min(38vw, 30rem);
+  }
+
+  .profile-booking__word {
+    font-size: 8rem;
+  }
+}
+
+/* ================================
+   TABLET
+================================ */
+@media (max-width: 1024px) {
+  .profile-hero__content {
+    padding-top: 5.5rem;
+  }
+
+  .profile-hero__title,
+  .profile-disciplines__line {
+    font-size: 6rem;
+  }
+
+  .profile-intro__copy {
+    font-size: 1.5rem;
+  }
+
+  .profile-film__media {
+    width: 45vw;
+  }
+
+  .profile-story__rail-column {
+    font-size: 4rem;
+  }
+
+  .profile-story__item {
+    width: 38vw;
+  }
+
+  .profile-story__item--one {
+    margin-left: 7%;
+  }
+
+  .profile-story__item--two {
+    margin-right: 8%;
+  }
+
+  .profile-story__item--three {
+    margin-left: 10%;
+  }
+
+  .profile-story__item--four {
+    margin-right: 5%;
+  }
+
+  .profile-booking__word {
+    font-size: 6rem;
+  }
+}
+
+/* ================================
+   MOBILE
+================================ */
+@media (max-width: 767px) {
+  .profile-hero__content {
+    padding: 5.5rem var(--page-padding) 1.5rem;
+  }
+
+  .profile-hero__title {
+    font-size: 4rem;
+    line-height: 0.8;
+  }
+
+  .profile-hero__line {
+    max-width: calc(100vw - (var(--page-padding) * 2));
+  }
+
+  .profile-hero__bottom {
+    margin-top: 1.75rem;
+  }
+
+  .profile-intro {
+    padding-top: 7rem;
+    padding-bottom: 8rem;
+  }
+
+  .profile-intro__layout {
+    display: block;
+    margin-bottom: 7rem;
+  }
+
+  .profile-intro__label {
+    margin-bottom: 2rem;
+  }
+
+  .profile-intro__copy {
+    max-width: 27rem;
+    margin-left: auto;
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .profile-details {
+    margin-top: 3.5rem;
+  }
+
+  .profile-details__row {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+    gap: 1rem;
+    min-height: 4.2rem;
+  }
+
+  .profile-details__label,
+  .profile-details__value {
+    font-size: 0.78rem;
+  }
+
+  .profile-details__value {
+    overflow-wrap: anywhere;
+  }
+
+  .profile-disciplines__line {
+    max-width: calc(100vw - (var(--page-padding) * 2));
+    font-size: 4rem;
+    line-height: 0.82;
+  }
+
+  .profile-film {
+    padding-bottom: 9rem;
+  }
+
+  .profile-film__media {
+    width: 76vw;
+    max-width: calc(100vw - (var(--page-padding) * 2));
+  }
+
+  .profile-story {
+    padding-top: 5rem;
+    padding-bottom: 11rem;
+  }
+
+  .profile-story__rail-column {
+    color: var(--color-muted);
+    font-size: 2.8rem;
+  }
+
+  .profile-story__item {
+    width: 66vw;
+    max-width: calc(100vw - (var(--page-padding) * 2));
+  }
+
+  .profile-story__item--one {
+    margin-left: 5%;
+    margin-bottom: 8rem;
+  }
+
+  .profile-story__item--two {
+    margin-right: 4%;
+    margin-bottom: 9rem;
+  }
+
+  .profile-story__item--three {
+    margin-bottom: 9rem;
+    margin-left: 4%;
+  }
+
+  .profile-story__item--four {
+    margin-right: 4%;
+  }
+
+  .profile-booking {
+    min-height: 78svh;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .profile-booking__top {
+    display: block;
+  }
+
+  .profile-booking__socials {
+    margin-top: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .profile-booking__link {
+    padding-top: 5rem;
+  }
+
+  .profile-booking__word {
+    max-width: calc(100vw - (var(--page-padding) * 2));
+    font-size: 4rem;
+    line-height: 0.76;
+  }
+}
+
+/* ================================
+   SMALL MOBILE
+================================ */
+@media (max-width: 480px) {
+  .profile-hero__title,
+  .profile-disciplines__line,
+  .profile-booking__word {
+    font-size: 3.5rem;
+  }
+
+  .profile-film__media {
+    width: 80vw;
+  }
+
+  .profile-story__rail-column {
+    font-size: 2.4rem;
+  }
+
+  .profile-story__item {
+    width: 70vw;
+  }
+
+  .profile-booking__socials {
+    flex-wrap: wrap;
+  }
+}
