@@ -13,8 +13,24 @@ import { prefersReducedMotion } from "../core/reduced-motion.js";
 let revealInitialized = false;
 let completeInitialized = false;
 
+/* ================================
+   HELPERS
+================================ */
+function refreshScrollTrigger() {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+    });
+  });
+}
+
+/* ================================
+   PROTECTED VIDEOS
+================================ */
 function initProtectedVideos() {
-  const videos = document.querySelectorAll("[data-protected-video]");
+  const videos = document.querySelectorAll(
+    "[data-protected-video]"
+  );
 
   videos.forEach((video) => {
     video.addEventListener("contextmenu", (event) => {
@@ -27,11 +43,25 @@ function initProtectedVideos() {
   });
 }
 
+/* ================================
+   HERO ENTRANCE
+================================ */
 function initHeroEntrance() {
-  const title = document.querySelector("[data-hero-title]");
-  const media = document.querySelector("[data-hero-media]");
-  const mediaInner = document.querySelector("[data-hero-media-inner]");
-  const meta = document.querySelectorAll("[data-hero-meta]");
+  const title = document.querySelector(
+    "[data-hero-title]"
+  );
+
+  const media = document.querySelector(
+    "[data-hero-media]"
+  );
+
+  const mediaInner = document.querySelector(
+    "[data-hero-media-inner]"
+  );
+
+  const meta = document.querySelectorAll(
+    "[data-hero-meta]"
+  );
 
   if (!title || !media || !mediaInner) return;
 
@@ -63,13 +93,15 @@ function initHeroEntrance() {
   });
 
   gsap.set(mediaInner, {
-    scale: 1.04
+    scale: 1.04,
+    force3D: true
   });
 
   gsap.set(title, {
     opacity: 1,
     scaleX: 1.04,
-    transformOrigin: "50% 50%"
+    transformOrigin: "50% 50%",
+    force3D: true
   });
 
   gsap.set(chars, {
@@ -79,7 +111,8 @@ function initHeroEntrance() {
       return (index - center) * 3;
     },
     scaleY: 0.9,
-    transformOrigin: "50% 100%"
+    transformOrigin: "50% 100%",
+    force3D: true
   });
 
   gsap.set(meta, {
@@ -139,29 +172,48 @@ function initHeroEntrance() {
     );
 }
 
+/* ================================
+   HERO SCROLL
+================================ */
 function initHeroScroll() {
-  const hero = document.querySelector("[data-hero]");
-  const video = document.querySelector("[data-protected-video]");
+  const hero = document.querySelector(
+    "[data-hero]"
+  );
 
-  if (!hero || !video || prefersReducedMotion()) return;
+  const video = document.querySelector(
+    "[data-protected-video]"
+  );
+
+  if (
+    !hero ||
+    !video ||
+    prefersReducedMotion()
+  ) {
+    return;
+  }
 
   const matchMedia = gsap.matchMedia();
 
   matchMedia.add("(min-width: 768px)", () => {
-    gsap.set(video, {
-      scale: 1
-    });
-
-    const tween = gsap.to(video, {
-      scale: 1.045,
-      ease: "none",
-      scrollTrigger: {
-        trigger: hero,
-        start: "top top",
-        end: "bottom top",
-        scrub: 0.8
+    const tween = gsap.fromTo(
+      video,
+      {
+        scale: 1
+      },
+      {
+        scale: 1.045,
+        ease: "none",
+        immediateRender: false,
+        force3D: true,
+        scrollTrigger: {
+          trigger: hero,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.8,
+          invalidateOnRefresh: true
+        }
       }
-    });
+    );
 
     return () => {
       tween.kill();
@@ -173,57 +225,67 @@ function initHeroScroll() {
   });
 }
 
+/* ================================
+   CLIENT MARQUEE
+================================ */
 function initClientMarquee() {
-  const marquee = document.querySelector("[data-client-marquee]");
-  const track = document.querySelector("[data-client-track]");
+  const marquee = document.querySelector(
+    "[data-client-marquee]"
+  );
+
+  const track = document.querySelector(
+    "[data-client-track]"
+  );
 
   if (!marquee || !track) return;
 
-  const originalGroup = track.querySelector("[data-client-group]");
+  const originalGroup = track.querySelector(
+    "[data-client-group]"
+  );
 
   if (!originalGroup) return;
 
-  /*
-   * Remove clones if this gets initialized again.
-   */
-  track.querySelectorAll("[data-client-clone]").forEach((clone) => {
-    clone.remove();
-  });
+  const reducedMotion = prefersReducedMotion();
 
-  /*
-   * We need enough repeated groups so that there is
-   * NEVER exposed empty space, even on very wide screens.
-   */
+  let tween = null;
+  let resizeTimer = null;
+
+  const removeClones = () => {
+    track
+      .querySelectorAll("[data-client-clone]")
+      .forEach((clone) => {
+        clone.remove();
+      });
+  };
+
   const createClone = () => {
     const clone = originalGroup.cloneNode(true);
 
-    clone.removeAttribute("data-client-group");
-    clone.setAttribute("data-client-clone", "");
-    clone.setAttribute("aria-hidden", "true");
+    clone.removeAttribute(
+      "data-client-group"
+    );
 
-    clone.querySelectorAll("[aria-label]").forEach((item) => {
-      item.removeAttribute("aria-label");
-    });
+    clone.setAttribute(
+      "data-client-clone",
+      ""
+    );
+
+    clone.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    clone
+      .querySelectorAll("[aria-label]")
+      .forEach((item) => {
+        item.removeAttribute("aria-label");
+      });
 
     track.appendChild(clone);
 
     return clone;
   };
 
-  /*
-   * Start with two repetitions.
-   */
-  createClone();
-
-  /*
-   * Keep cloning until we have enough content to:
-   *
-   * cover the viewport
-   * +
-   * travel one complete original group
-   *
-   * This removes the visible empty ending completely.
-   */
   const fillTrack = () => {
     const groupWidth = originalGroup.offsetWidth;
 
@@ -240,66 +302,97 @@ function initClientMarquee() {
     }
   };
 
-  fillTrack();
-
-  if (prefersReducedMotion()) return;
-
-  const groupWidth = originalGroup.offsetWidth;
-
-  /*
-   * Exact pixel travel.
-   *
-   * Once the first complete group has moved away,
-   * the next identical group is occupying the exact
-   * same position.
-   */
-  const tween = gsap.fromTo(
-    track,
-    {
-      x: 0
-    },
-    {
-      x: -groupWidth,
-      duration: 28,
-      repeat: -1,
-      ease: "none"
+  const buildMarquee = () => {
+    if (tween) {
+      tween.kill();
+      tween = null;
     }
-  );
 
-  /*
-   * Handle viewport changes without leaving
-   * gaps in the marquee.
-   */
-  let resizeTimer;
+    removeClones();
+
+    gsap.set(track, {
+      x: 0
+    });
+
+    /*
+     * One clone guarantees the seamless
+     * transition between group A and B.
+     */
+    createClone();
+
+    /*
+     * Add more copies on very wide screens.
+     */
+    fillTrack();
+
+    if (reducedMotion) return;
+
+    const groupWidth =
+      originalGroup.offsetWidth;
+
+    if (!groupWidth) return;
+
+    tween = gsap.fromTo(
+      track,
+      {
+        x: 0
+      },
+      {
+        x: -groupWidth,
+        duration: 28,
+        repeat: -1,
+        ease: "none",
+        force3D: true
+      }
+    );
+  };
+
+  buildMarquee();
 
   const handleResize = () => {
     clearTimeout(resizeTimer);
 
     resizeTimer = setTimeout(() => {
-      tween.kill();
-
-      track.querySelectorAll("[data-client-clone]").forEach((clone) => {
-        clone.remove();
-      });
-
-      initClientMarquee();
-    }, 150);
+      buildMarquee();
+    }, 180);
   };
 
   window.addEventListener(
     "resize",
     handleResize,
-    { passive: true }
+    {
+      passive: true
+    }
   );
 }
 
+/* ================================
+   SELECTED WORK HEADING
+================================ */
 function initSelectedWorkHeading() {
-  const section = document.querySelector("[data-selected-work]");
-  const heading = section?.querySelector("[data-selected-heading]");
-  const title = heading?.querySelector(".home-selected__title");
-  const swiperElement = section?.querySelector("[data-selected-swiper]");
-  const selected = section?.querySelector("[data-selected-title-left]");
-  const work = section?.querySelector("[data-selected-title-right]");
+  const section = document.querySelector(
+    "[data-selected-work]"
+  );
+
+  const heading = section?.querySelector(
+    "[data-selected-heading]"
+  );
+
+  const title = heading?.querySelector(
+    ".home-selected__title"
+  );
+
+  const swiperElement = section?.querySelector(
+    "[data-selected-swiper]"
+  );
+
+  const selected = section?.querySelector(
+    "[data-selected-title-left]"
+  );
+
+  const work = section?.querySelector(
+    "[data-selected-title-right]"
+  );
 
   if (
     !section ||
@@ -307,18 +400,46 @@ function initSelectedWorkHeading() {
     !title ||
     !swiperElement ||
     !selected ||
-    !work ||
-    prefersReducedMotion()
+    !work
   ) {
     return;
   }
 
-  const getSelectedTravel = () => {
-    return title.clientWidth - selected.offsetWidth;
+  /*
+   * Explicit stacking.
+   *
+   * The kinetic heading is intentionally
+   * behind the Swiper cards.
+   */
+  gsap.set(heading, {
+    zIndex: 1
+  });
+
+  gsap.set(swiperElement, {
+    position: "relative",
+    zIndex: 2
+  });
+
+  if (prefersReducedMotion()) return;
+
+  const getSelectedTravel = (
+    multiplier = 1
+  ) => {
+    return Math.max(
+      0,
+      title.clientWidth -
+        selected.offsetWidth
+    ) * multiplier;
   };
 
-  const getWorkTravel = () => {
-    return title.clientWidth - work.offsetWidth;
+  const getWorkTravel = (
+    multiplier = 1
+  ) => {
+    return Math.max(
+      0,
+      title.clientWidth -
+        work.offsetWidth
+    ) * multiplier;
   };
 
   gsap.set([selected, work], {
@@ -328,129 +449,169 @@ function initSelectedWorkHeading() {
 
   const matchMedia = gsap.matchMedia();
 
-  /*
-   * DESKTOP / TABLET
-   * GSAP owns the pin.
-   */
-  matchMedia.add("(min-width: 768px)", () => {
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: heading,
-        start: "top 18%",
-        endTrigger: swiperElement,
-        end: "bottom 10%",
-        pin: heading,
-        pinSpacing: false,
-        scrub: 1.35,
-        anticipatePin: 1,
-        invalidateOnRefresh: true
-      }
-    });
-
-    timeline
-      .fromTo(
-        selected,
-        {
-          x: 0
-        },
-        {
-          x: () => getSelectedTravel(),
-          duration: 1,
-          ease: "none"
-        },
-        0
-      )
-      .fromTo(
-        work,
-        {
-          x: 0
-        },
-        {
-          x: () => -getWorkTravel(),
-          duration: 1,
-          ease: "none"
-        },
-        0
-      );
-
-    return () => {
-      timeline.scrollTrigger?.kill();
-      timeline.kill();
-
-      gsap.set([selected, work], {
-        clearProps: "transform"
+  /* ================================
+     DESKTOP / TABLET
+  ================================ */
+  matchMedia.add(
+    "(min-width: 768px)",
+    () => {
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: heading,
+          start: "top 18%",
+          endTrigger: swiperElement,
+          end: "bottom 10%",
+          pin: heading,
+          pinSpacing: false,
+          scrub: 1.35,
+          anticipatePin: 1,
+          invalidateOnRefresh: true
+        }
       });
-    };
-  });
 
-  /*
-   * MOBILE
-   *
-   * CSS position: sticky owns the sticky behavior.
-   * GSAP ONLY owns horizontal text movement.
-   *
-   * This avoids Safari's pin-release jump.
-   */
-  matchMedia.add("(max-width: 767px)", () => {
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: heading,
-        start: "top 16%",
-        endTrigger: swiperElement,
-        end: "bottom 10%",
-        scrub: 1.2,
-        invalidateOnRefresh: true
-      }
-    });
+      timeline
+        .fromTo(
+          selected,
+          {
+            x: 0
+          },
+          {
+            x: () =>
+              getSelectedTravel(1),
+            duration: 1,
+            ease: "none",
+            immediateRender: false
+          },
+          0
+        )
+        .fromTo(
+          work,
+          {
+            x: 0
+          },
+          {
+            x: () =>
+              -getWorkTravel(1),
+            duration: 1,
+            ease: "none",
+            immediateRender: false
+          },
+          0
+        );
 
-    timeline
-      .fromTo(
-        selected,
-        {
-          x: 0
-        },
-        {
-          x: () => getSelectedTravel(),
-          duration: 1,
-          ease: "none"
-        },
-        0
-      )
-      .fromTo(
-        work,
-        {
-          x: 0
-        },
-        {
-          x: () => -getWorkTravel(),
-          duration: 1,
-          ease: "none"
-        },
-        0
-      );
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
 
-    return () => {
-      timeline.scrollTrigger?.kill();
-      timeline.kill();
+        gsap.set(
+          [selected, work],
+          {
+            clearProps: "transform"
+          }
+        );
+      };
+    }
+  );
 
-      gsap.set([selected, work], {
-        clearProps: "transform"
+  /* ================================
+     MOBILE
+  ================================ */
+  matchMedia.add(
+    "(max-width: 767px)",
+    () => {
+      /*
+       * CSS sticky owns the sticky behavior
+       * on mobile.
+       *
+       * GSAP only moves the typography.
+       *
+       * Travel is intentionally reduced
+       * to avoid excessive horizontal motion
+       * on narrow iPhone screens.
+       */
+      const mobileTravel = 0.38;
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: heading,
+          start: "top 16%",
+          endTrigger: swiperElement,
+          end: "bottom 10%",
+          scrub: 1.2,
+          invalidateOnRefresh: true
+        }
       });
-    };
-  });
+
+      timeline
+        .fromTo(
+          selected,
+          {
+            x: 0
+          },
+          {
+            x: () =>
+              getSelectedTravel(
+                mobileTravel
+              ),
+            duration: 1,
+            ease: "none",
+            immediateRender: false
+          },
+          0
+        )
+        .fromTo(
+          work,
+          {
+            x: 0
+          },
+          {
+            x: () =>
+              -getWorkTravel(
+                mobileTravel
+              ),
+            duration: 1,
+            ease: "none",
+            immediateRender: false
+          },
+          0
+        );
+
+      return () => {
+        timeline.scrollTrigger?.kill();
+        timeline.kill();
+
+        gsap.set(
+          [selected, work],
+          {
+            clearProps: "transform"
+          }
+        );
+      };
+    }
+  );
 }
 
+/* ================================
+   SELECTED WORK SWIPER
+================================ */
 function initSelectedWorkSwiper() {
-  const section = document.querySelector("[data-selected-work]");
-  const swiperElement = document.querySelector("[data-selected-swiper]");
+  const section = document.querySelector(
+    "[data-selected-work]"
+  );
+
+  const swiperElement = document.querySelector(
+    "[data-selected-swiper]"
+  );
 
   if (!section || !swiperElement) return;
 
-  const reducedMotion = prefersReducedMotion();
+  const reducedMotion =
+    prefersReducedMotion();
 
-  const parallaxImages = swiperElement.querySelectorAll(
-    "[data-selected-parallax]"
-  );
+  const parallaxImages =
+    swiperElement.querySelectorAll(
+      "[data-selected-parallax]"
+    );
 
   parallaxImages.forEach((image) => {
     image.setAttribute(
@@ -459,93 +620,177 @@ function initSelectedWorkSwiper() {
     );
   });
 
-  const swiper = new Swiper(swiperElement, {
-    modules: [
-      Keyboard,
-      Parallax
-    ],
+  let updateFrame = null;
 
-    slidesPerView: "auto",
-    spaceBetween: 32,
+  const scheduleUpdate = (instance) => {
+    if (!instance || instance.destroyed) return;
 
-    speed: reducedMotion ? 0 : 1050,
+    if (updateFrame) {
+      cancelAnimationFrame(updateFrame);
+    }
 
-    parallax: {
-      enabled: !reducedMotion
-    },
+    updateFrame = requestAnimationFrame(
+      () => {
+        if (
+          !instance ||
+          instance.destroyed
+        ) {
+          return;
+        }
 
-    keyboard: {
-      enabled: true,
-      onlyInViewport: true,
-      pageUpDown: false
-    },
-
-    grabCursor: !reducedMotion,
-
-    watchSlidesProgress: true,
-    watchOverflow: true,
-
-    centeredSlides: false,
-
-    followFinger: true,
-    simulateTouch: true,
-
-    touchRatio: 0.82,
-    threshold: 3,
-    touchAngle: 45,
-
-    resistance: true,
-    resistanceRatio: 0.7,
-
-    shortSwipes: true,
-    longSwipes: true,
-    longSwipesMs: 280,
-    longSwipesRatio: 0.22,
-
-    preventClicks: true,
-    preventClicksPropagation: true,
-    preventInteractionOnTransition: false,
-
-    roundLengths: false,
-
-    lazyPreloadPrevNext: 2,
-
-    breakpoints: {
-      0: {
-        spaceBetween: 14,
-        touchRatio: 0.9
-      },
-
-      768: {
-        spaceBetween: 22,
-        touchRatio: 0.86
-      },
-
-      1025: {
-        spaceBetween: 32,
-        touchRatio: 0.82
+        instance.update();
       }
-    },
+    );
+  };
 
-    on: {
-      init(instance) {
-        requestAnimationFrame(() => {
-          instance.update();
-        });
+  const swiper = new Swiper(
+    swiperElement,
+    {
+      modules: [
+        Keyboard,
+        Parallax
+      ],
+
+      slidesPerView: "auto",
+      spaceBetween: 32,
+
+      speed: reducedMotion
+        ? 0
+        : 1050,
+
+      parallax: {
+        enabled: !reducedMotion
       },
 
-      resize(instance) {
-        requestAnimationFrame(() => {
-          instance.update();
-        });
+      keyboard: {
+        enabled: true,
+        onlyInViewport: true,
+        pageUpDown: false
+      },
+
+      grabCursor: !reducedMotion,
+
+      watchSlidesProgress: true,
+      watchOverflow: true,
+
+      observer: true,
+      observeParents: true,
+      resizeObserver: true,
+      updateOnWindowResize: true,
+
+      centeredSlides: false,
+
+      followFinger: true,
+      simulateTouch: true,
+      allowTouchMove: true,
+
+      /*
+       * Better mobile/iOS gesture behavior.
+       */
+      touchStartPreventDefault: false,
+      touchMoveStopPropagation: false,
+      touchReleaseOnEdges: true,
+      touchEventsTarget: "wrapper",
+
+      edgeSwipeDetection: true,
+      edgeSwipeThreshold: 24,
+
+      touchRatio: 0.82,
+      threshold: 4,
+      touchAngle: 38,
+
+      resistance: true,
+      resistanceRatio: 0.65,
+
+      shortSwipes: true,
+      longSwipes: true,
+      longSwipesMs: 280,
+      longSwipesRatio: 0.22,
+
+      preventClicks: true,
+      preventClicksPropagation: true,
+      preventInteractionOnTransition: false,
+
+      roundLengths: false,
+
+      lazyPreloadPrevNext: 2,
+
+      breakpoints: {
+        0: {
+          spaceBetween: 14,
+          touchRatio: 0.9,
+          touchAngle: 34,
+          resistanceRatio: 0.58
+        },
+
+        768: {
+          spaceBetween: 22,
+          touchRatio: 0.86,
+          touchAngle: 38
+        },
+
+        1025: {
+          spaceBetween: 32,
+          touchRatio: 0.82,
+          touchAngle: 42
+        }
+      },
+
+      on: {
+        init(instance) {
+          scheduleUpdate(instance);
+        },
+
+        resize(instance) {
+          scheduleUpdate(instance);
+        },
+
+        imagesReady(instance) {
+          scheduleUpdate(instance);
+        }
       }
     }
-  });
+  );
+
+  /*
+   * Native lazy-loaded images may finish
+   * after Swiper's first measurements.
+   */
+  swiperElement
+    .querySelectorAll("img")
+    .forEach((image) => {
+      if (image.complete) return;
+
+      image.addEventListener(
+        "load",
+        () => {
+          scheduleUpdate(swiper);
+
+          refreshScrollTrigger();
+        },
+        {
+          once: true
+        }
+      );
+    });
+
+  /*
+   * Font metrics can affect section width
+   * and ScrollTrigger measurements.
+   */
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      scheduleUpdate(swiper);
+
+      refreshScrollTrigger();
+    });
+  }
 
   if (!reducedMotion) {
-    const headingMeta = section.querySelector(
-      ".home-selected__heading .meta"
-    );
+    const headingMeta =
+      section.querySelector(
+        ".home-selected__heading .meta"
+      );
 
     if (headingMeta) {
       gsap.fromTo(
@@ -569,44 +814,75 @@ function initSelectedWorkSwiper() {
     }
 
     gsap.fromTo(
-  swiperElement,
-  {
-    autoAlpha: 0,
-    y: 24
-  },
-  {
-    autoAlpha: 1,
-    y: 0,
-    duration: 1.25,
-    ease: "power4.out",
-    scrollTrigger: {
-      trigger: swiperElement,
-      start: "top 94%",
-      once: true
-    }
-  }
-);
+      swiperElement,
+      {
+        autoAlpha: 0,
+        y: 24
+      },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: 1.25,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: swiperElement,
+          start: "top 94%",
+          once: true
+        }
+      }
+    );
   }
 
   return swiper;
 }
 
+/* ================================
+   PROFILE / 3D PRISM
+================================ */
 function initProfile() {
-  const section = document.querySelector("[data-profile]");
-  const stage = document.querySelector("[data-profile-stage]");
-  const prism = document.querySelector("[data-profile-prism]");
-  const duda = document.querySelector("[data-profile-duda]");
-  const negrao = document.querySelector("[data-profile-negrao]");
-  const bottom = document.querySelector("[data-profile-bottom]");
-  const mediaInners = prism?.querySelectorAll(
-    "[data-profile-media-inner]"
-  ) || [];
-  const overlays = prism?.querySelectorAll(
-    "[data-profile-overlay]"
-  ) || [];
-  const views = prism?.querySelectorAll(
-    "[data-profile-view]"
-  ) || [];
+  const section = document.querySelector(
+    "[data-profile]"
+  );
+
+  const stage = document.querySelector(
+    "[data-profile-stage]"
+  );
+
+  const prism = document.querySelector(
+    "[data-profile-prism]"
+  );
+
+  const duda = document.querySelector(
+    "[data-profile-duda]"
+  );
+
+  const negrao = document.querySelector(
+    "[data-profile-negrao]"
+  );
+
+  const bottom = document.querySelector(
+    "[data-profile-bottom]"
+  );
+
+  const mediaInners =
+    prism?.querySelectorAll(
+      "[data-profile-media-inner]"
+    ) || [];
+
+  const overlays =
+    prism?.querySelectorAll(
+      "[data-profile-overlay]"
+    ) || [];
+
+  const views =
+    prism?.querySelectorAll(
+      "[data-profile-view]"
+    ) || [];
+
+  const faces =
+    prism?.querySelectorAll(
+      ".home-profile__face"
+    ) || [];
 
   if (
     !section ||
@@ -618,8 +894,15 @@ function initProfile() {
     return;
   }
 
+  /* ================================
+     PRISM DEPTH
+  ================================ */
   function updatePrismDepth() {
-    const depth = prism.offsetWidth / 2;
+    const width = prism.offsetWidth;
+
+    if (!width) return;
+
+    const depth = width / 2;
 
     prism.style.setProperty(
       "--profile-depth",
@@ -629,11 +912,47 @@ function initProfile() {
 
   updatePrismDepth();
 
-  const resizeObserver = new ResizeObserver(() => {
-    updatePrismDepth();
+  let resizeObserver = null;
+
+  if ("ResizeObserver" in window) {
+    resizeObserver =
+      new ResizeObserver(() => {
+        updatePrismDepth();
+      });
+
+    resizeObserver.observe(prism);
+  } else {
+    window.addEventListener(
+      "resize",
+      updatePrismDepth,
+      {
+        passive: true
+      }
+    );
+  }
+
+  /*
+   * Safari/WebKit 3D hardening.
+   */
+  gsap.set(stage, {
+    perspective: 1800,
+    perspectiveOrigin: "50% 50%",
+    transformStyle: "preserve-3d"
   });
 
-  resizeObserver.observe(prism);
+  gsap.set(prism, {
+    transformStyle: "preserve-3d",
+    transformOrigin: "50% 50%",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
+    force3D: true
+  });
+
+  gsap.set(faces, {
+    transformStyle: "preserve-3d",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden"
+  });
 
   if (prefersReducedMotion()) {
     gsap.set(prism, {
@@ -643,36 +962,58 @@ function initProfile() {
       z: 0
     });
 
-    gsap.set([duda, negrao], {
-      autoAlpha: 1,
-      x: 0
-    });
+    gsap.set(
+      [duda, negrao],
+      {
+        autoAlpha: 1,
+        x: 0
+      }
+    );
 
     return;
   }
 
-  gsap.set(stage, {
-    perspective: 1800,
-    perspectiveOrigin: "50% 50%"
-  });
-
+  /* ================================
+     INITIAL PRISM
+  ================================ */
   gsap.set(prism, {
     rotateY: 0,
     rotateX: 3,
     scale: 0.9,
     z: -120,
-    transformStyle: "preserve-3d",
-    transformOrigin: "50% 50%",
     force3D: true
   });
 
-  gsap.set([duda, negrao], {
-    force3D: true
-  });
+  gsap.set(
+    [duda, negrao],
+    {
+      force3D: true
+    }
+  );
 
   const edge = 100;
 
-  const getLeftOutside = (element) => {
+  /*
+   * Use layout coordinates instead of
+   * getBoundingClientRect().
+   *
+   * This avoids reading the prism after
+   * GSAP has transformed it.
+   */
+  const getPrismLeft = () => {
+    return prism.offsetLeft;
+  };
+
+  const getPrismRight = () => {
+    return (
+      prism.offsetLeft +
+      prism.offsetWidth
+    );
+  };
+
+  const getLeftOutside = (
+    element
+  ) => {
     return (
       -element.offsetLeft -
       element.offsetWidth -
@@ -680,7 +1021,9 @@ function initProfile() {
     );
   };
 
-  const getRightOutside = (element) => {
+  const getRightOutside = (
+    element
+  ) => {
     return (
       window.innerWidth -
       element.offsetLeft +
@@ -689,64 +1032,57 @@ function initProfile() {
   };
 
   const getDudaHeroX = () => {
-    const prismRect = prism.getBoundingClientRect();
-
     return (
-      prismRect.left -
+      getPrismLeft() -
       duda.offsetLeft -
       duda.offsetWidth +
-      prismRect.width * 0.22
+      prism.offsetWidth * 0.22
     );
   };
 
   const getNegraoHeroX = () => {
-    const prismRect = prism.getBoundingClientRect();
-
     return (
-      prismRect.right -
+      getPrismRight() -
       negrao.offsetLeft -
-      prismRect.width * 0.22
+      prism.offsetWidth * 0.22
     );
   };
 
-  /*
-   * Longer because we're now showing
-   * FOUR actual faces.
-   */
   const scrollDistance = () => {
     return window.innerWidth <= 767
       ? window.innerHeight * 2.8
       : window.innerHeight * 3.8;
   };
 
-  /*
-   * --------------------------------
-   * MASTER PINNED EXPERIENCE
-   * --------------------------------
-   */
-
+  /* ================================
+     MASTER PINNED EXPERIENCE
+  ================================ */
   const timeline = gsap.timeline({
     scrollTrigger: {
       trigger: stage,
       start: "top top",
-      end: () => `+=${scrollDistance()}`,
+      end: () =>
+        `+=${scrollDistance()}`,
       pin: true,
       scrub: 1.6,
       anticipatePin: 1,
       invalidateOnRefresh: true,
-      onRefreshInit: updatePrismDepth
+
+      onRefreshInit: () => {
+        updatePrismDepth();
+      }
     }
   });
 
+  /* ================================
+     PRISM ROTATION
+  ================================ */
+
   /*
-   * --------------------------------
-   * 3D PRISM
-   *
-   * FACE 01  0°
-   * FACE 02 -90°
-   * FACE 03 -180°
-   * FACE 04 -270°
-   * --------------------------------
+   * FACE 01:   0°
+   * FACE 02: -90°
+   * FACE 03: -180°
+   * FACE 04: -270°
    */
 
   timeline.to(
@@ -757,7 +1093,8 @@ function initProfile() {
       scale: 0.98,
       z: 20,
       duration: 1,
-      ease: "none"
+      ease: "none",
+      force3D: true
     },
     0
   );
@@ -770,7 +1107,8 @@ function initProfile() {
       scale: 1,
       z: 70,
       duration: 1,
-      ease: "none"
+      ease: "none",
+      force3D: true
     },
     1
   );
@@ -783,30 +1121,31 @@ function initProfile() {
       scale: 0.9,
       z: -120,
       duration: 1,
-      ease: "none"
+      ease: "none",
+      force3D: true
     },
     2
   );
 
-  /*
-   * --------------------------------
-   * DUDA
-   *
-   * Left → composition → full right.
-   * --------------------------------
-   */
-
+  /* ================================
+     DUDA KINETIC TYPE
+  ================================ */
   timeline.fromTo(
     duda,
     {
-      x: () => getLeftOutside(duda),
+      x: () =>
+        getLeftOutside(duda),
+
       autoAlpha: 0
     },
     {
-      x: () => getDudaHeroX(),
+      x: () =>
+        getDudaHeroX(),
+
       autoAlpha: 1,
       duration: 1.25,
-      ease: "none"
+      ease: "none",
+      immediateRender: false
     },
     0
   );
@@ -814,7 +1153,9 @@ function initProfile() {
   timeline.to(
     duda,
     {
-      x: () => getRightOutside(duda),
+      x: () =>
+        getRightOutside(duda),
+
       autoAlpha: 0,
       duration: 1.75,
       ease: "none"
@@ -822,25 +1163,25 @@ function initProfile() {
     1.25
   );
 
-  /*
-   * --------------------------------
-   * NEGRÃO
-   *
-   * Right → composition → full left.
-   * --------------------------------
-   */
-
+  /* ================================
+     NEGRÃO KINETIC TYPE
+  ================================ */
   timeline.fromTo(
     negrao,
     {
-      x: () => getRightOutside(negrao),
+      x: () =>
+        getRightOutside(negrao),
+
       autoAlpha: 0
     },
     {
-      x: () => getNegraoHeroX(),
+      x: () =>
+        getNegraoHeroX(),
+
       autoAlpha: 1,
       duration: 1.25,
-      ease: "none"
+      ease: "none",
+      immediateRender: false
     },
     0
   );
@@ -848,7 +1189,9 @@ function initProfile() {
   timeline.to(
     negrao,
     {
-      x: () => getLeftOutside(negrao),
+      x: () =>
+        getLeftOutside(negrao),
+
       autoAlpha: 0,
       duration: 1.75,
       ease: "none"
@@ -856,15 +1199,9 @@ function initProfile() {
     1.25
   );
 
-  /*
-   * --------------------------------
-   * IMAGE BREATHING
-   *
-   * Hover owns media-inner scale later,
-   * so we don't animate the same property here.
-   * --------------------------------
-   */
-
+  /* ================================
+     IMAGE BREATHING
+  ================================ */
   const images = prism.querySelectorAll(
     ".home-profile__image"
   );
@@ -877,27 +1214,26 @@ function initProfile() {
     {
       yPercent: 3,
       duration: 3,
-      ease: "none"
+      ease: "none",
+      immediateRender: false
     },
     0
   );
 
-  /*
-   * --------------------------------
-   * HOVER
-   * --------------------------------
-   */
-
-  const canHover = window.matchMedia(
-    "(hover: hover) and (pointer: fine)"
-  ).matches;
+  /* ================================
+     PROFILE HOVER
+  ================================ */
+  const canHover =
+    window.matchMedia(
+      "(hover: hover) and (pointer: fine)"
+    ).matches;
 
   function showProfileHover() {
     gsap.to(overlays, {
       autoAlpha: 1,
       duration: 0.5,
       ease: "power2.out",
-      overwrite: true
+      overwrite: "auto"
     });
 
     gsap.to(views, {
@@ -905,14 +1241,14 @@ function initProfile() {
       yPercent: -10,
       duration: 0.6,
       ease: "power3.out",
-      overwrite: true
+      overwrite: "auto"
     });
 
     gsap.to(mediaInners, {
       scale: 1.035,
       duration: 0.9,
       ease: "power3.out",
-      overwrite: true
+      overwrite: "auto"
     });
   }
 
@@ -921,7 +1257,7 @@ function initProfile() {
       autoAlpha: 0,
       duration: 0.45,
       ease: "power2.out",
-      overwrite: true
+      overwrite: "auto"
     });
 
     gsap.to(views, {
@@ -929,14 +1265,14 @@ function initProfile() {
       yPercent: 0,
       duration: 0.45,
       ease: "power3.out",
-      overwrite: true
+      overwrite: "auto"
     });
 
     gsap.to(mediaInners, {
       scale: 1,
       duration: 0.8,
       ease: "power3.out",
-      overwrite: true
+      overwrite: "auto"
     });
   }
 
@@ -962,15 +1298,13 @@ function initProfile() {
     hideProfileHover
   );
 
-  /*
-   * --------------------------------
-   * HEADER
-   * --------------------------------
-   */
-
-  const headerItems = section.querySelectorAll(
-    ".home-profile__header > *"
-  );
+  /* ================================
+     PROFILE HEADER
+  ================================ */
+  const headerItems =
+    section.querySelectorAll(
+      ".home-profile__header > *"
+    );
 
   if (headerItems.length) {
     gsap.fromTo(
@@ -994,16 +1328,14 @@ function initProfile() {
     );
   }
 
-  /*
-   * --------------------------------
-   * BOTTOM INFO
-   * --------------------------------
-   */
-
+  /* ================================
+     PROFILE BOTTOM
+  ================================ */
   if (bottom) {
-    const bottomItems = bottom.querySelectorAll(
-      ".home-profile__disciplines, .home-profile__bottom-link"
-    );
+    const bottomItems =
+      bottom.querySelectorAll(
+        ".home-profile__disciplines, .home-profile__bottom-link"
+      );
 
     gsap.fromTo(
       bottomItems,
@@ -1027,36 +1359,45 @@ function initProfile() {
   }
 }
 
+/* ================================
+   WORK INDEX
+================================ */
 function initWorkIndex() {
   if (prefersReducedMotion()) return;
 
-  const projects = document.querySelectorAll(
-    "[data-index-project]"
-  );
-
-  projects.forEach((project, index) => {
-    gsap.fromTo(
-      project,
-      {
-        autoAlpha: 0,
-        y: 24
-      },
-      {
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.8,
-        delay: index * 0.025,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: project,
-          start: "top 92%",
-          once: true
-        }
-      }
+  const projects =
+    document.querySelectorAll(
+      "[data-index-project]"
     );
-  });
+
+  projects.forEach(
+    (project, index) => {
+      gsap.fromTo(
+        project,
+        {
+          autoAlpha: 0,
+          y: 24
+        },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.8,
+          delay: index * 0.025,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: project,
+            start: "top 92%",
+            once: true
+          }
+        }
+      );
+    }
+  );
 }
 
+/* ================================
+   LOADER REVEAL PHASE
+================================ */
 function startRevealPhase() {
   if (revealInitialized) return;
 
@@ -1066,6 +1407,9 @@ function startRevealPhase() {
   initHeroEntrance();
 }
 
+/* ================================
+   LOADER COMPLETE PHASE
+================================ */
 function startCompletePhase() {
   if (completeInitialized) return;
 
@@ -1073,33 +1417,49 @@ function startCompletePhase() {
 
   initHeroScroll();
   initClientMarquee();
-  initSelectedWorkHeading();
-  initSelectedWorkSwiper();
-  initWorkIndex();
 
   /*
-   * THIS WAS MISSING.
+   * Swiper initializes before its
+   * ScrollTrigger heading so the final
+   * carousel dimensions already exist.
    */
+  initSelectedWorkSwiper();
+  initSelectedWorkHeading();
+
+  initWorkIndex();
   initProfile();
 
-  requestAnimationFrame(() => {
-    ScrollTrigger.refresh();
-  });
+  refreshScrollTrigger();
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      refreshScrollTrigger();
+    });
+  }
 }
 
+/* ================================
+   INIT
+================================ */
 if (
-  document.documentElement.classList.contains("js-preload")
+  document.documentElement.classList.contains(
+    "js-preload"
+  )
 ) {
   window.addEventListener(
     "duda:loader-reveal",
     startRevealPhase,
-    { once: true }
+    {
+      once: true
+    }
   );
 
   window.addEventListener(
     "duda:loader-complete",
     startCompletePhase,
-    { once: true }
+    {
+      once: true
+    }
   );
 } else {
   startRevealPhase();
