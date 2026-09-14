@@ -234,29 +234,32 @@
   }
 }
 
-/* SELECTED WORK */
-
+/* ================================
+   SELECTED WORK
+================================ */
 .home-selected {
   position: relative;
-  overflow: visible;
+  width: 100%;
+  max-width: 100%;
   padding: clamp(8rem, 12vw, 12rem) 0 clamp(9rem, 14vw, 14rem);
-  background: #000;
+  background: var(--color-bg);
+  isolation: isolate;
 }
 
 .home-selected__heading {
   position: relative;
   z-index: 1;
   width: 100%;
+  max-width: 100%;
   margin-bottom: clamp(5rem, 8vw, 8rem);
   padding-inline: var(--page-padding);
-  box-sizing: border-box;
   pointer-events: none;
 }
 
 .home-selected__title {
   width: 100%;
+  max-width: 100%;
   margin: 0;
-  overflow: visible;
   font-size: 8rem;
   font-weight: 500;
   line-height: 0.78;
@@ -267,6 +270,7 @@
 .home-selected__title-line {
   display: block;
   width: max-content;
+  max-width: 100%;
   white-space: nowrap;
   will-change: transform;
 }
@@ -284,9 +288,9 @@
   position: relative;
   z-index: 2;
   width: 100%;
+  max-width: 100%;
   overflow: hidden;
-  padding-right: var(--page-padding);
-  padding-left: var(--page-padding);
+  padding-inline: var(--page-padding);
   touch-action: pan-y;
   cursor: grab;
 }
@@ -321,6 +325,7 @@
   width: 100%;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  background: var(--color-bg);
 }
 
 .home-selected__image {
@@ -344,6 +349,7 @@
 
 .home-selected__caption {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
@@ -351,8 +357,9 @@
   color: var(--color-text);
 }
 
-/* LARGE DESKTOP */
-
+/* ================================
+   LARGE DESKTOP
+================================ */
 @media (max-width: 1280px) {
   .home-selected__title {
     font-size: 7rem;
@@ -363,8 +370,9 @@
   }
 }
 
-/* TABLET */
-
+/* ================================
+   TABLET
+================================ */
 @media (max-width: 1024px) {
   .home-selected__title {
     font-size: 6rem;
@@ -375,42 +383,92 @@
   }
 }
 
-/* MOBILE */
-
+/* ================================
+   MOBILE
+================================ */
 @media (max-width: 767px) {
   .home-selected {
     padding-top: 7rem;
     padding-bottom: 8rem;
   }
 
-    .home-selected__heading {
-    position: sticky;
-    top: 16svh;
-    z-index: 1;
-    margin-bottom: 4.5rem;
+  .home-selected__heading {
+    position: relative;
+    z-index: 2;
+    top: auto;
+    margin-bottom: 3.5rem;
     padding-inline: var(--page-padding);
   }
 
   .home-selected__title {
-    margin-top: 2rem;
+    margin: 0;
     font-size: 4rem;
+    line-height: 0.8;
     text-align: left;
   }
 
+  .home-selected__title-line {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .home-selected__title-line--work {
+    margin-top: 0.08em;
+    margin-left: auto;
+  }
+
+  /*
+   * Native mobile carousel.
+   * No Swiper transforms on iPhone.
+   */
   .home-selected__swiper {
-    padding-right: var(--page-padding);
-    padding-left: var(--page-padding);
+    z-index: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-inline: var(--page-padding);
+    scroll-padding-inline: var(--page-padding);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: auto;
+    cursor: default;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-selected__swiper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-selected__wrapper {
+    width: max-content;
+    height: auto;
+    gap: 0.875rem;
+    transform: none !important;
+    transition: none !important;
+    will-change: auto;
   }
 
   .home-selected__slide {
     width: 82vw;
+    flex: 0 0 82vw;
+    scroll-snap-align: start;
+  }
+
+  .home-selected__image {
+    left: 0;
+    width: 100%;
+    transform: none !important;
+    will-change: auto;
   }
 
   .home-selected__caption {
+    gap: 1rem;
     padding-top: 0.7rem;
   }
 }
 
+/* ================================
+   SMALL MOBILE
+================================ */
 @media (max-width: 480px) {
   .home-selected__title {
     font-size: 3.5rem;
@@ -418,6 +476,7 @@
 
   .home-selected__slide {
     width: 84vw;
+    flex-basis: 84vw;
   }
 }
 
