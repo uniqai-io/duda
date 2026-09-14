@@ -405,47 +405,27 @@ function initSelectedWorkHeading() {
     return;
   }
 
-  /*
-   * Explicit stacking.
-   *
-   * The kinetic heading is intentionally
-   * behind the Swiper cards.
-   */
-  gsap.set(heading, {
-    zIndex: 1
-  });
+  if (prefersReducedMotion()) {
+    gsap.set([heading, selected, work], {
+      clearProps: "transform,opacity,visibility"
+    });
 
-  gsap.set(swiperElement, {
-    position: "relative",
-    zIndex: 2
-  });
+    return;
+  }
 
-  if (prefersReducedMotion()) return;
-
-  const getSelectedTravel = (
-    multiplier = 1
-  ) => {
+  const getSelectedTravel = () => {
     return Math.max(
       0,
-      title.clientWidth -
-        selected.offsetWidth
-    ) * multiplier;
+      title.clientWidth - selected.offsetWidth
+    );
   };
 
-  const getWorkTravel = (
-    multiplier = 1
-  ) => {
+  const getWorkTravel = () => {
     return Math.max(
       0,
-      title.clientWidth -
-        work.offsetWidth
-    ) * multiplier;
+      title.clientWidth - work.offsetWidth
+    );
   };
-
-  gsap.set([selected, work], {
-    x: 0,
-    force3D: true
-  });
 
   const matchMedia = gsap.matchMedia();
 
@@ -455,6 +435,11 @@ function initSelectedWorkHeading() {
   matchMedia.add(
     "(min-width: 768px)",
     () => {
+      gsap.set([selected, work], {
+        x: 0,
+        force3D: true
+      });
+
       const timeline = gsap.timeline({
         scrollTrigger: {
           trigger: heading,
@@ -476,8 +461,7 @@ function initSelectedWorkHeading() {
             x: 0
           },
           {
-            x: () =>
-              getSelectedTravel(1),
+            x: () => getSelectedTravel(),
             duration: 1,
             ease: "none",
             immediateRender: false
@@ -490,8 +474,7 @@ function initSelectedWorkHeading() {
             x: 0
           },
           {
-            x: () =>
-              -getWorkTravel(1),
+            x: () => -getWorkTravel(),
             duration: 1,
             ease: "none",
             immediateRender: false
@@ -503,12 +486,9 @@ function initSelectedWorkHeading() {
         timeline.scrollTrigger?.kill();
         timeline.kill();
 
-        gsap.set(
-          [selected, work],
-          {
-            clearProps: "transform"
-          }
-        );
+        gsap.set([selected, work], {
+          clearProps: "transform"
+        });
       };
     }
   );
@@ -520,72 +500,41 @@ function initSelectedWorkHeading() {
     "(max-width: 767px)",
     () => {
       /*
-       * CSS sticky owns the sticky behavior
-       * on mobile.
-       *
-       * GSAP only moves the typography.
-       *
-       * Travel is intentionally reduced
-       * to avoid excessive horizontal motion
-       * on narrow iPhone screens.
+       * No sticky.
+       * No horizontal GSAP.
+       * Just a restrained editorial entrance.
        */
-      const mobileTravel = 0.38;
-
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: heading,
-          start: "top 16%",
-          endTrigger: swiperElement,
-          end: "bottom 10%",
-          scrub: 1.2,
-          invalidateOnRefresh: true
-        }
+      gsap.set([selected, work], {
+        x: 0,
+        clearProps: "transform"
       });
 
-      timeline
-        .fromTo(
-          selected,
-          {
-            x: 0
-          },
-          {
-            x: () =>
-              getSelectedTravel(
-                mobileTravel
-              ),
-            duration: 1,
-            ease: "none",
-            immediateRender: false
-          },
-          0
-        )
-        .fromTo(
-          work,
-          {
-            x: 0
-          },
-          {
-            x: () =>
-              -getWorkTravel(
-                mobileTravel
-              ),
-            duration: 1,
-            ease: "none",
-            immediateRender: false
-          },
-          0
-        );
+      const tween = gsap.fromTo(
+        heading,
+        {
+          autoAlpha: 0,
+          y: 18
+        },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.9,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: heading,
+            start: "top 88%",
+            once: true
+          }
+        }
+      );
 
       return () => {
-        timeline.scrollTrigger?.kill();
-        timeline.kill();
+        tween.scrollTrigger?.kill();
+        tween.kill();
 
-        gsap.set(
-          [selected, work],
-          {
-            clearProps: "transform"
-          }
-        );
+        gsap.set(heading, {
+          clearProps: "transform,opacity,visibility"
+        });
       };
     }
   );
@@ -599,163 +548,199 @@ function initSelectedWorkSwiper() {
     "[data-selected-work]"
   );
 
-  const swiperElement = document.querySelector(
+  const swiperElement = section?.querySelector(
     "[data-selected-swiper]"
   );
 
   if (!section || !swiperElement) return;
-
-  const reducedMotion =
-    prefersReducedMotion();
 
   const parallaxImages =
     swiperElement.querySelectorAll(
       "[data-selected-parallax]"
     );
 
-  parallaxImages.forEach((image) => {
-    image.setAttribute(
-      "data-swiper-parallax-x",
-      reducedMotion ? "0%" : "-8%"
-    );
-  });
+  const reducedMotion =
+    prefersReducedMotion();
 
+  const desktopQuery =
+    window.matchMedia(
+      "(min-width: 768px)"
+    );
+
+  let swiper = null;
   let updateFrame = null;
 
-  const scheduleUpdate = (instance) => {
-    if (!instance || instance.destroyed) return;
-
-    if (updateFrame) {
-      cancelAnimationFrame(updateFrame);
+  function scheduleUpdate() {
+    if (
+      !swiper ||
+      swiper.destroyed
+    ) {
+      return;
     }
 
-    updateFrame = requestAnimationFrame(
-      () => {
+    if (updateFrame) {
+      cancelAnimationFrame(
+        updateFrame
+      );
+    }
+
+    updateFrame =
+      requestAnimationFrame(() => {
         if (
-          !instance ||
-          instance.destroyed
+          !swiper ||
+          swiper.destroyed
         ) {
           return;
         }
 
-        instance.update();
+        swiper.update();
+      });
+  }
+
+  function enableNativeMobile() {
+    if (swiper) {
+      swiper.destroy(
+        true,
+        true
+      );
+
+      swiper = null;
+    }
+
+    parallaxImages.forEach(
+      (image) => {
+        image.removeAttribute(
+          "data-swiper-parallax-x"
+        );
+
+        gsap.set(image, {
+          clearProps: "transform"
+        });
       }
     );
-  };
 
-  const swiper = new Swiper(
-    swiperElement,
-    {
-      modules: [
-        Keyboard,
-        Parallax
-      ],
+    gsap.set(swiperElement, {
+      clearProps: "transform"
+    });
+  }
 
-      slidesPerView: "auto",
-      spaceBetween: 32,
+  function enableDesktopSwiper() {
+    if (swiper) return;
 
-      speed: reducedMotion
-        ? 0
-        : 1050,
+    parallaxImages.forEach(
+      (image) => {
+        image.setAttribute(
+          "data-swiper-parallax-x",
+          reducedMotion
+            ? "0%"
+            : "-8%"
+        );
+      }
+    );
 
-      parallax: {
-        enabled: !reducedMotion
-      },
+    swiper = new Swiper(
+      swiperElement,
+      {
+        modules: [
+          Keyboard,
+          Parallax
+        ],
 
-      keyboard: {
-        enabled: true,
-        onlyInViewport: true,
-        pageUpDown: false
-      },
+        slidesPerView: "auto",
 
-      grabCursor: !reducedMotion,
+        spaceBetween: 32,
 
-      watchSlidesProgress: true,
-      watchOverflow: true,
+        speed: reducedMotion
+          ? 0
+          : 950,
 
-      observer: true,
-      observeParents: true,
-      resizeObserver: true,
-      updateOnWindowResize: true,
-
-      centeredSlides: false,
-
-      followFinger: true,
-      simulateTouch: true,
-      allowTouchMove: true,
-
-      /*
-       * Better mobile/iOS gesture behavior.
-       */
-      touchStartPreventDefault: false,
-      touchMoveStopPropagation: false,
-      touchReleaseOnEdges: true,
-      touchEventsTarget: "wrapper",
-
-      edgeSwipeDetection: true,
-      edgeSwipeThreshold: 24,
-
-      touchRatio: 0.82,
-      threshold: 4,
-      touchAngle: 38,
-
-      resistance: true,
-      resistanceRatio: 0.65,
-
-      shortSwipes: true,
-      longSwipes: true,
-      longSwipesMs: 280,
-      longSwipesRatio: 0.22,
-
-      preventClicks: true,
-      preventClicksPropagation: true,
-      preventInteractionOnTransition: false,
-
-      roundLengths: false,
-
-      lazyPreloadPrevNext: 2,
-
-      breakpoints: {
-        0: {
-          spaceBetween: 14,
-          touchRatio: 0.9,
-          touchAngle: 34,
-          resistanceRatio: 0.58
+        parallax: {
+          enabled: !reducedMotion
         },
 
-        768: {
-          spaceBetween: 22,
-          touchRatio: 0.86,
-          touchAngle: 38
+        keyboard: {
+          enabled: true,
+          onlyInViewport: true,
+          pageUpDown: false
         },
 
-        1025: {
-          spaceBetween: 32,
-          touchRatio: 0.82,
-          touchAngle: 42
-        }
-      },
+        grabCursor:
+          !reducedMotion &&
+          window.matchMedia(
+            "(hover: hover) and (pointer: fine)"
+          ).matches,
 
-      on: {
-        init(instance) {
-          scheduleUpdate(instance);
+        watchSlidesProgress: true,
+        watchOverflow: true,
+
+        centeredSlides: false,
+
+        followFinger: true,
+        simulateTouch: true,
+        allowTouchMove: true,
+
+        touchStartPreventDefault: false,
+        touchReleaseOnEdges: true,
+
+        touchRatio: 0.86,
+        threshold: 5,
+        touchAngle: 42,
+
+        resistance: true,
+        resistanceRatio: 0.7,
+
+        shortSwipes: true,
+        longSwipes: true,
+        longSwipesMs: 280,
+        longSwipesRatio: 0.22,
+
+        preventClicks: true,
+        preventClicksPropagation: true,
+
+        roundLengths: true,
+
+        breakpoints: {
+          768: {
+            spaceBetween: 22
+          },
+
+          1025: {
+            spaceBetween: 32
+          }
         },
 
-        resize(instance) {
-          scheduleUpdate(instance);
-        },
+        on: {
+          init() {
+            scheduleUpdate();
+          },
 
-        imagesReady(instance) {
-          scheduleUpdate(instance);
+          resize() {
+            scheduleUpdate();
+          }
         }
       }
+    );
+  }
+
+  function syncMode() {
+    if (
+      desktopQuery.matches
+    ) {
+      enableDesktopSwiper();
+    } else {
+      enableNativeMobile();
     }
+
+    refreshScrollTrigger();
+  }
+
+  syncMode();
+
+  desktopQuery.addEventListener(
+    "change",
+    syncMode
   );
 
-  /*
-   * Native lazy-loaded images may finish
-   * after Swiper's first measurements.
-   */
   swiperElement
     .querySelectorAll("img")
     .forEach((image) => {
@@ -764,9 +749,7 @@ function initSelectedWorkSwiper() {
       image.addEventListener(
         "load",
         () => {
-          scheduleUpdate(swiper);
-
-          refreshScrollTrigger();
+          scheduleUpdate();
         },
         {
           once: true
@@ -774,45 +757,15 @@ function initSelectedWorkSwiper() {
       );
     });
 
-  /*
-   * Font metrics can affect section width
-   * and ScrollTrigger measurements.
-   */
   if (document.fonts?.ready) {
-    document.fonts.ready.then(() => {
-      scheduleUpdate(swiper);
-
-      refreshScrollTrigger();
-    });
+    document.fonts.ready.then(
+      () => {
+        scheduleUpdate();
+      }
+    );
   }
 
   if (!reducedMotion) {
-    const headingMeta =
-      section.querySelector(
-        ".home-selected__heading .meta"
-      );
-
-    if (headingMeta) {
-      gsap.fromTo(
-        headingMeta,
-        {
-          autoAlpha: 0,
-          y: 16
-        },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.85,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 86%",
-            once: true
-          }
-        }
-      );
-    }
-
     gsap.fromTo(
       swiperElement,
       {
@@ -822,7 +775,7 @@ function initSelectedWorkSwiper() {
       {
         autoAlpha: 1,
         y: 0,
-        duration: 1.25,
+        duration: 1.1,
         ease: "power4.out",
         scrollTrigger: {
           trigger: swiperElement,
@@ -832,8 +785,6 @@ function initSelectedWorkSwiper() {
       }
     );
   }
-
-  return swiper;
 }
 
 /* ================================
